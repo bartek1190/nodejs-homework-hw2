@@ -1,8 +1,11 @@
 import express from "express";
 import logger from "morgan";
 import cors from "cors";
-
 import { router as contactsRouter } from "./routes/api/contacts.js";
+import mongoose from "mongoose";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const app = express();
 
@@ -11,6 +14,16 @@ const formatsLogger = app.get("env") === "development" ? "dev" : "short";
 app.use(logger(formatsLogger));
 app.use(cors());
 app.use(express.json());
+
+mongoose
+  .connect(process.env.MONGODB_baseUrl)
+  .then(() => {
+    console.log("Database connection successful");
+  })
+  .catch((error) => {
+    console.log(error.message);
+    process.exit(1);
+  });
 
 app.use("/api/contacts", contactsRouter);
 

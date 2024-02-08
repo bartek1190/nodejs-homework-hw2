@@ -1,10 +1,9 @@
-import { Contact } from "./schema.js";
+import { Contact } from "../shema/schema.js";
+import { validateObjectId } from "../validation/validation.js";
 
 export const listContacts = async (_, res, next) => {
   try {
-    console.log("Próba pobrania kontaktów z bazy danych...");
     const contact = await Contact.find();
-    console.log("Pobrane kontakty:", contact);
     res.json(contact);
   } catch (error) {
     next(error);
@@ -25,66 +24,53 @@ export const getContactById = async (req, res, next) => {
   }
 };
 
-// export const removeContact = async (req, res, next) => {
-//   const contactId = req.params.contactId;
-//   try {
-//     const contactIndex = await findContactIndexById(contactId);
-//     if (contactIndex !== -1) {
-//       const contactsParsed = await readContacts();
-//       const removedContact = contactsParsed.splice(contactIndex, 1)[0];
-//       await writeContacts(contactsParsed);
-//       res.json({ message: "contact deleted" });
-//     } else {
-//       res.status(404).json({ message: "contact not Found" });
-//     }
-//   } catch (error) {
-//     next(error);
-//   }
-// };
+export const removeContact = async (req, res, next) => {
+  const contactId = req.params.contactId;
+  try {
+    if (!validateObjectId(contactId)) {
+      return res.status(400).json({ message: "Invalid contact ID" });
+    }
 
-// export const addContact = async (req, res, next) => {
-//   const body = req.body;
+    const contact = await Contact.findOneAndDelete({ _id: contactId });
+    if (contact) {
+      res.json({ message: "Contact deleted" });
+    } else {
+      res.status(404).json({ message: "Contact not found" });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
 
-//   const { error } = contactSchema(body);
-//   if (error) {
-//     return res.status(400).json({ message: error.details[0].message });
-//   }
-//   const newContact = {
-//     id: nanoid(21),
-//     name: body.name,
-//     email: body.email,
-//     phone: body.phone,
-//   };
+export const addContact = async (req, res, next) => {
+  const body = req.body;
 
-//   try {
-//     const contactsParsed = await readContacts();
-//     contactsParsed.push(newContact);
-//     await writeContacts(contactsParsed);
-//     res.status(201).json(newContact);
-//   } catch (error) {
-//     next(error);
-//   }
-// };
+  try {
+    const newContact = await Contact.create({
+      name: body.name,
+      email: body.email,
+      phone: body.phone,
+    });
 
-// export const updateContact = async (req, res, next) => {
-//   const contactId = req.params.contactId;
-//   const body = req.body;
+    res.status(201).json(newContact);
+  } catch (error) {
+    next(error);
+  }
+};
 
-//   const { error } = contactSchema(body);
-//   if (error) {
-//     return res.status(400).json({ message: error.details[0].message });
-//   }
+export const updateContact = async (req, res, next) => {
+  const contactId = req.params.contactId;
+  const body = req.body;
 
-//   try {
-//     const contactIndex = await findContactIndexById(contactId);
-//     if (contactIndex === -1) {
-//       return res.status(404).json({ message: "Not found" });
-//     }
-//     const contactsParsed = await readContacts();
-//     Object.assign(contactsParsed[contactIndex], body);
-//     await writeContacts(contactsParsed);
-//     res.json(contactsParsed[contactIndex]);
-//   } catch (error) {
-//     next(error);
-//   }
-// };
+  try {
+    const updatedContact = await Contact.findByIdAndUpdate(contactId, body, {
+      new: true,
+    });
+    if (!updatedContact) {
+      return res.status(404).json({ message: "Contact not found" });
+    }
+    res.json(updatedContact);
+  } catch (error) {
+    next(error);
+  }
+};

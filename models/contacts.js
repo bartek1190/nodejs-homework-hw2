@@ -1,7 +1,7 @@
 import { Contact } from "../shema/schema.js";
 import { validateObjectId } from "../validation/validation.js";
 
-export const listContacts = async (_, res, next) => {
+export const listContacts = async (req, res, next) => {
   try {
     const contact = await Contact.find();
     res.json(contact);
@@ -72,5 +72,35 @@ export const updateContact = async (req, res, next) => {
     res.json(updatedContact);
   } catch (error) {
     next(error);
+  }
+};
+
+export const updateContactFavoriteStatus = async (req, res, next) => {
+  const contactId = req.params.contactId;
+  const body = req.body;
+  try {
+    if (!body.hasOwnProperty("favorite")) {
+      res.status(400).json({ message: "missing field favorite" });
+    }
+    const updateContact = await updateStatusContact(contactId, body);
+    if (updateContact) {
+      res.status(200).json(updateContact);
+    } else {
+      return res.status(404).json({ message: "Contact not found" });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+const updateStatusContact = async (contactId, body) => {
+  try {
+    const updatedContact = await Contact.findByIdAndUpdate(
+      contactId,
+      { favorite: body.favorite },
+      { new: true }
+    );
+    return updatedContact;
+  } catch (error) {
+    throw error;
   }
 };

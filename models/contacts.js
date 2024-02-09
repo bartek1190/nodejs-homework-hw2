@@ -1,11 +1,10 @@
-import { nanoid } from "nanoid";
-import { validateContact } from "./schemaJoi.js";
-import { writeContacts, readContacts, findContactIndexById } from "./utils.js";
+import { Contact } from "../shema/schema.js";
+import { validateObjectId } from "../validation/validation.js";
 
-export const listContacts = async (_, res, next) => {
+export const listContacts = async (req, res, next) => {
   try {
-    const contactsParsed = await readContacts();
-    res.json(contactsParsed);
+    const contact = await Contact.find();
+    res.json(contact);
   } catch (error) {
     next(error);
   }
@@ -14,10 +13,9 @@ export const listContacts = async (_, res, next) => {
 export const getContactById = async (req, res, next) => {
   const contactId = req.params.contactId;
   try {
-    const contactsParsed = await readContacts();
-    const findId = contactsParsed.find((contact) => contact.id === contactId);
-    if (findId) {
-      res.json(findId);
+    const contact = await Contact.findById(contactId);
+    if (contact) {
+      res.json(contact);
     } else {
       res.status(404).json({ message: "Contact not found" });
     }
@@ -29,14 +27,15 @@ export const getContactById = async (req, res, next) => {
 export const removeContact = async (req, res, next) => {
   const contactId = req.params.contactId;
   try {
-    const contactIndex = await findContactIndexById(contactId);
-    if (contactIndex !== -1) {
-      const contactsParsed = await readContacts();
-      const removedContact = contactsParsed.splice(contactIndex, 1)[0];
-      await writeContacts(contactsParsed);
-      res.json({ message: "contact deleted" });
+    if (!validateObjectId(contactId)) {
+      return res.status(400).json({ message: "Invalid contact ID" });
+    }
+
+    const contact = await Contact.findOneAndDelete({ _id: contactId });
+    if (contact) {
+      res.json({ message: "Contact deleted" });
     } else {
-      res.status(404).json({ message: "contact not Found" });
+      res.status(404).json({ message: "Contact not found" });
     }
   } catch (error) {
     next(error);
@@ -46,21 +45,13 @@ export const removeContact = async (req, res, next) => {
 export const addContact = async (req, res, next) => {
   const body = req.body;
 
-  const { error } = validateContact(body);
-  if (error) {
-    return res.status(400).json({ message: error.details[0].message });
-  }
-  const newContact = {
-    id: nanoid(21),
-    name: body.name,
-    email: body.email,
-    phone: body.phone,
-  };
-
   try {
-    const contactsParsed = await readContacts();
-    contactsParsed.push(newContact);
-    await writeContacts(contactsParsed);
+    const newContact = await Contact.create({
+      name: body.name,
+      email: body.email,
+      phone: body.phone,
+    });
+
     res.status(201).json(newContact);
   } catch (error) {
     next(error);
@@ -71,21 +62,45 @@ export const updateContact = async (req, res, next) => {
   const contactId = req.params.contactId;
   const body = req.body;
 
-  const { error } = validateContact(body);
-  if (error) {
-    return res.status(400).json({ message: error.details[0].message });
-  }
-
   try {
-    const contactIndex = await findContactIndexById(contactId);
-    if (contactIndex === -1) {
-      return res.status(404).json({ message: "Not found" });
+    const updatedContact = await Contact.findByIdAndUpdate(contactId, body, {
+      new: true,
+    });
+    if (!updatedContact) {
+      return res.status(404).json({ message: "Contact not found" });
     }
-    const contactsParsed = await readContacts();
-    Object.assign(contactsParsed[contactIndex], body);
-    await writeContacts(contactsParsed);
-    res.json(contactsParsed[contactIndex]);
+    res.json(updatedContact);
   } catch (error) {
     next(error);
+  }
+};
+
+export const updateContactFavoriteStatus = async (req, res, next) => {
+  const contactId = req.params.contactId;
+  const body = req.body;
+  try {
+    if (!body.hasOwnProperty("favorite")) {
+      res.status(400).json({ message: "missing field favorite" });
+    }
+    const updateContact = await updateStatusContact(contactId, body);
+    if (updateContact) {
+      res.status(200).json(updateContact);
+    } else {
+      return res.status(404).json({ message: "Contact not found" });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+const updateStatusContact = async (contactId, body) => {
+  try {
+    const updatedContact = await Contact.findByIdAndUpdate(
+      contactId,
+      { favorite: body.favorite },
+      { new: true }
+    );
+    return updatedContact;
+  } catch (error) {
+    throw error;
   }
 };

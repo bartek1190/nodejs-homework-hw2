@@ -1,41 +1,29 @@
 import express from "express";
-import {
-  addContact,
-  getContactById,
-  listContacts,
-  removeContact,
-  updateContact,
-  updateContactFavoriteStatus,
-} from "../../models/contacts.js";
-import {
-  addContactSchema,
-  updateContactSchema,
-} from "../../validation/validationJoi.js";
+
+import { showContacts } from "../../controllers/contacts/showContacts.js";
+
+import { showContactById } from "../../controllers/contacts/showContactById.js";
+
+import { createNewContact } from "../../controllers/contacts/createNewContact.js";
+
+import { deleteContact } from "../../controllers/contacts/deleteContact.js";
+
+import { updateExistContact } from "../../controllers/contacts/updateExistContact.js";
+
+import { updateStatus } from "../../controllers/contacts/updateStatus.js";
 
 const router = express.Router();
 
-router.get("/", listContacts);
+router.get("/", showContacts);
 
-router.get("/:contactId", getContactById);
+router.get("/:contactId", showContactById);
 
-router.post("/", async (req, res, next) => {
-  const { error } = addContactSchema.validate(req.body);
-  if (error) {
-    return res.status(400).json({ message: error.details[0].message });
-  }
-  addContact(req, res, next);
-});
+router.post("/", createNewContact);
 
-router.delete("/:contactId", removeContact);
+router.delete("/:contactId", deleteContact);
 
-router.put("/:contactId", async (req, res, next) => {
-  const { error } = updateContactSchema.validate(req.body);
-  if (error) {
-    return res.status(400).json({ message: error.details[0].message });
-  }
-  updateContact(req, res, next);
-});
+router.put("/:contactId", updateExistContact);
 
-router.patch("/:contactId/favorite", updateContactFavoriteStatus);
+router.patch("/:contactId/favourite", updateStatus);
 
 export { router };

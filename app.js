@@ -1,11 +1,13 @@
-import express from "express";
-import logger from "morgan";
 import cors from "cors";
-import { router as contactsRouter } from "./routes/api/contacts.js";
-import mongoose from "mongoose";
-import dotenv from "dotenv";
+import logger from "morgan";
+import express from "express";
 
-dotenv.config();
+import { router as contactsRouter } from "./routes/api/contacts.js";
+
+import { router as usersRouter } from "./routes/api/users.js";
+
+import setJWTStrategy from "./config/userAuthStrategy.js";
+import authMiddleware from "./auth.js";
 
 const app = express();
 
@@ -15,24 +17,28 @@ app.use(logger(formatsLogger));
 app.use(cors());
 app.use(express.json());
 
-mongoose
-  .connect(process.env.MONGODB_baseUrl)
-  .then(() => {
-    console.log("Database connection successful");
-  })
-  .catch((error) => {
-    console.log(error.message);
-    process.exit(1);
-  });
+setJWTStrategy();
 
-app.use("/api/contacts", contactsRouter);
+app.use("/api/contacts", authMiddleware, contactsRouter);
+app.use("/api/users", usersRouter);
 
 app.use((req, res) => {
-  res.status(404).json({ message: "Not found" });
+  res.status(404).json({
+    status: "error",
+    code: 404,
+    message: "Use api on routes: /api/contacts",
+    data: "Not found",
+  });
 });
 
 app.use((err, req, res, next) => {
-  res.status(500).json({ message: err.message });
+  console.log(err.stack);
+  res.status(500).json({
+    status: "fail",
+    code: 500,
+    message: err.message,
+    data: "Internal Server Error",
+  });
 });
 
 export { app };

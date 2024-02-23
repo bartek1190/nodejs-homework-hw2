@@ -13,4 +13,6 @@ router.post("/login", logIn);
 
 router.get("/logout", authMiddleware, logOut);
 
+router.patch("/avatars", authMiddleware, upload.single("avatar"), uploadAvatar);
+
 export { router };

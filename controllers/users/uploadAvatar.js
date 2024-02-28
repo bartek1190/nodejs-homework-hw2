@@ -28,12 +28,10 @@ async function uploadAvatar(req, res, next) {
   console.log("Uploaded file data:", req.file);
 
   try {
-    // Sprawdź, czy plik został przesłany
     if (!req.file) {
       return res.status(400).json({ message: "No file uploaded" });
     }
 
-    // Upewnij się, że informacje o użytkowniku są dostępne
     if (!req.user || !req.user._id) {
       console.error("User information is missing.");
       return res
@@ -41,21 +39,17 @@ async function uploadAvatar(req, res, next) {
         .json({ message: "Internal Server Error due to missing user data" });
     }
 
-    // Przetwarzanie obrazu przy użyciu biblioteki Jimp
     const image = await jimp.read(req.file.path);
     await image.cover(250, 250).writeAsync(req.file.path);
 
-    // Generowanie nowej nazwy pliku i przenoszenie go do docelowego folderu
     const newFileName = `${nanoid()}${path.extname(req.file.originalname)}`;
     const newPath = path.join(avatarsFolder, newFileName);
     await fs.rename(req.file.path, newPath);
 
-    // Aktualizacja URL awatara w bazie danych
     const userId = req.user._id;
     const avatarURL = `/avatars/${newFileName}`;
     await User.findByIdAndUpdate(userId, { avatarURL });
 
-    // Odpowiedź z nowym URL awatara
     return res.status(200).json({ avatarURL });
   } catch (error) {
     console.error("Error uploading avatar:", error);

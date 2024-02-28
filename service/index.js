@@ -1,5 +1,6 @@
 import { Contact } from "./schemas/contacts.js";
 import { User } from "./schemas/users.js";
+import gravatar from "gravatar";
 
 const getAllContacts = async () => {
   return Contact.find();
@@ -34,7 +35,8 @@ const findUserByEmail = async (email) => {
 };
 
 const createUser = async ({ email, password }) => {
-  const newUser = new User({ email });
+  const avatarURL = gravatar.url(email, { s: "200", r: "pg" });
+  const newUser = new User({ email, avatarURL });
   await newUser.setPassword(password);
   await newUser.save();
   return newUser;

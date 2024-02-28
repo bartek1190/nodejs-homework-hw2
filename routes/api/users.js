@@ -4,6 +4,7 @@ import authMiddleware from "../../auth.js";
 import { logOut } from "../../controllers/users/logOut.js";
 import { logIn } from "../../controllers/users/logIn.js";
 import { signUp } from "../../controllers/users/signUp.js";
+import { upload, uploadAvatar } from "../../controllers/users/uploadAvatar.js";
 
 const router = express.Router();
 

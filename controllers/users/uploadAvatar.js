@@ -17,8 +17,12 @@ const storage = multer.diskStorage({
     cb(null, tmpFolder);
   },
   filename: function (req, file, cb) {
-    const fileName = `${nanoid()}${path.extname(file.originalname)}`;
-    cb(null, fileName);
+    const userEmail = req.user.email.split("@")[0];
+    const safeUserEmail = userEmail.replace(/[^a-z0-9]/gi, "_").toLowerCase();
+    const originalName = file.originalname.split(".")[0];
+    const fileExtension = path.extname(file.originalname);
+    const newFileName = `${safeUserEmail}-${originalName}${fileExtension}`;
+    cb(null, newFileName);
   },
 });
 
@@ -42,7 +46,7 @@ async function uploadAvatar(req, res, next) {
     const image = await jimp.read(req.file.path);
     await image.cover(250, 250).writeAsync(req.file.path);
 
-    const newFileName = `${nanoid()}${path.extname(req.file.originalname)}`;
+    const newFileName = req.file.filename;
     const newPath = path.join(avatarsFolder, newFileName);
     await fs.rename(req.file.path, newPath);
 

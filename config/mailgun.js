@@ -1,17 +1,16 @@
+// Plik: config/mailgun.js
+
 import dotenv from "dotenv";
 import formData from "form-data";
 import Mailgun from "mailgun.js";
 
 dotenv.config();
 
-const API_KEY = process.env.MAILGUN_KEY;
-const DOMAIN = process.env.MAILGUN_DOMAIN;
-
 const mailgun = new Mailgun(formData);
-
 const client = mailgun.client({
   username: "api",
-  key: API_KEY,
+  key: process.env.MAILGUN_KEY, // Upewnij się, że w pliku .env klucz jest poprawnie ustawiony
 });
 
-export { DOMAIN, client };
+export const DOMAIN = process.env.MAILGUN_DOMAIN; // Sprawdź, czy domena jest poprawna w .env
+export { client };

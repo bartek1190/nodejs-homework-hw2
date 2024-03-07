@@ -7,12 +7,15 @@ import { signUp } from "../../controllers/users/signUp.js";
 import { upload, uploadAvatar } from "../../controllers/users/uploadAvatar.js";
 import { getCurrentUser } from "../../controllers/users/getCurrentUser.js";
 import { verify } from "../../controllers/users/verify.js";
+import { resendVerifyEmail } from "../../controllers/users/resendVerifyEmail.js";
 
 const router = express.Router();
 
 router.post("/signup", signUp);
 
 router.post("/login", logIn);
+
+router.post("/verify", resendVerifyEmail);
 
 router.get("/current", authMiddleware, getCurrentUser);
 

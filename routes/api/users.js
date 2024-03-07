@@ -13,7 +13,7 @@ router.post("/signup", signUp);
 
 router.post("/login", logIn);
 
-router.get("/current", authMiddleware, getCurrentUser); // testing
+router.get("/current", authMiddleware, getCurrentUser);
 
 router.get("/logout", authMiddleware, logOut);
 

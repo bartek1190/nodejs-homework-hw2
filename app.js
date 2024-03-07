@@ -8,8 +8,8 @@ import { router as usersRouter } from "./routes/api/users.js";
 import setJWTStrategy from "./config/userAuthStrategy.js";
 import authMiddleware from "./auth.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const filename = fileURLToPath(import.meta.url);
+const dirname = path.dirname(filename);
 
 const app = express();
 
@@ -19,7 +19,7 @@ app.use(logger(formatsLogger));
 app.use(cors());
 app.use(express.json());
 
-app.use(express.static(path.resolve(__dirname, "public")));
+app.use(express.static(path.resolve(dirname, "public")));
 
 setJWTStrategy();
 

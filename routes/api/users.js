@@ -6,6 +6,7 @@ import { logIn } from "../../controllers/users/logIn.js";
 import { signUp } from "../../controllers/users/signUp.js";
 import { upload, uploadAvatar } from "../../controllers/users/uploadAvatar.js";
 import { getCurrentUser } from "../../controllers/users/getCurrentUser.js";
+import { verify } from "../../controllers/users/verify.js";
 
 const router = express.Router();
 
@@ -16,6 +17,8 @@ router.post("/login", logIn);
 router.get("/current", authMiddleware, getCurrentUser);
 
 router.get("/logout", authMiddleware, logOut);
+
+router.get("/verify/:verificationToken", verify);
 
 router.patch("/avatars", authMiddleware, upload.single("avatar"), uploadAvatar);
 

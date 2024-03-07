@@ -1,5 +1,6 @@
 import { validateAddUser } from "../../validator.js";
 import { findUserByEmail, createUser } from "../../service/index.js";
+import gravatar from "gravatar";
 
 export async function signUp(req, res, next) {
   const { email, password } = req.body;
@@ -16,11 +17,26 @@ export async function signUp(req, res, next) {
   }
 
   try {
-    const newUser = await createUser({ email, password });
+    const avatarURL = gravatar.url(email, {
+      s: "200",
+      d: "identicon",
+      r: "pg",
+    });
+    const avatarURLWithPrefix = `https://${avatarURL}`;
+    const newUser = await createUser({
+      email,
+      password,
+      avatarURL: avatarURLWithPrefix,
+    });
+
     return res.status(201).json({
       status: "created",
       code: 201,
-      user: { email: newUser.email, subscription: "starter" },
+      user: {
+        email: newUser.email,
+        subscription: "starter",
+        avatarURL: avatarURLWithPrefix,
+      },
     });
   } catch (error) {
     res.status(500).json(`Error message: ${error}`);

@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
 import bCrypt from "bcryptjs";
+import gravatar from "gravatar";
 
 const SchemaUsers = mongoose.Schema;
-
 const users = new SchemaUsers({
   password: {
     type: String,
@@ -12,6 +12,9 @@ const users = new SchemaUsers({
     type: String,
     required: [true, "Email is required"],
     unique: true,
+  },
+  avatarURL: {
+    type: String,
   },
   subscription: {
     type: String,

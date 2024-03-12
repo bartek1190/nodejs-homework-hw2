@@ -1,6 +1,8 @@
+import { nanoid } from "nanoid";
 import { Contact } from "./schemas/contacts.js";
 import { User } from "./schemas/users.js";
 import gravatar from "gravatar";
+import { sendVerificationEmail } from "../config/exampleEmail.js";
 
 const getAllContacts = async () => {
   return Contact.find();
@@ -35,8 +37,11 @@ const findUserByEmail = async (email) => {
 };
 
 const createUser = async ({ email, password }) => {
+  const verificationToken = nanoid();
+  console.log(verificationToken);
   const avatarURL = gravatar.url(email, { s: "200", r: "pg" });
-  const newUser = new User({ email, avatarURL });
+  const newUser = new User({ email, avatarURL, verificationToken });
+  sendVerificationEmail(newUser.email, newUser.verificationToken);
   await newUser.setPassword(password);
   await newUser.save();
   return newUser;
@@ -55,6 +60,16 @@ const findUserById = async (id) => {
   await User.find({ _id: id });
 };
 
+const getUserByVerToken = async (verificationToken) => {
+  return User.findOne({ verificationToken });
+};
+
+const updateUserVerify = async (id, dataToUpdate) => {
+  return await User.findByIdAndUpdate({ _id: id }, dataToUpdate, {
+    new: true,
+  });
+};
+
 export {
   getAllContacts,
   getContactById,
@@ -67,4 +82,6 @@ export {
   createUser,
   updateUser,
   findUserById,
+  getUserByVerToken,
+  updateUserVerify,
 };
